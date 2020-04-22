@@ -6,6 +6,7 @@ namespace DecryptPluralSightVideos.Model
     {
         public string CourseName { get; set; }
         public string CourseTitle { get; set; }
+        public string CourseLevel { get; set; }
         public int HasTranscript { get; set; }
         public List<Module> Modules { get; set; }
 

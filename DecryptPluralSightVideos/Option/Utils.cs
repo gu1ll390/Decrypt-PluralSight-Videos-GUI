@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.IO;
 
 namespace DecryptPluralSightVideos.Option
@@ -27,11 +28,11 @@ namespace DecryptPluralSightVideos.Option
         public static void HelpCommand()
         {
             WriteToConsole("This tool is published by Loc Nguyen and shared on J2Team");
-            WriteToConsole(@"Source code of this tool published on: https://github.com/vinhloc1996/DecryptPluralSightVideos");
+            WriteToConsole(@"Source code of this tool published on: https://github.com/vinhloc1996/DecryptPluralSightVideos (removed)");
 
             WriteToConsole(Environment.NewLine + Environment.NewLine + "Flags: ");
             WriteToConsole("\t/F [PATH] Source path contains all downloaded courses. (Mandatory)");
-            WriteToConsole("\t/RM\tRemoves courses in databases after decryption is complete. (Optional)");
+            WriteToConsole("\t/RM\tRemoves courses after decryption is complete. (Optional)");
             WriteToConsole("\t/DB [PATH] Use Database to rename folder course, module... (Mandatory)");
             WriteToConsole("\t/OUT [PATH] Specifies an output directory instead of using the same source path. (Optional)");
             WriteToConsole("\t/TRANS\tGenerate subtitles file (.srt) if the course are supported. (Optional)");
@@ -101,6 +102,54 @@ namespace DecryptPluralSightVideos.Option
             }
 
             return options;
+        }
+
+        public static DecryptorOptions GetAppSettingsOptions(){
+            DecryptorOptions options = new DecryptorOptions();
+            
+            try
+            {
+                var appSettings = ConfigurationManager.AppSettings;
+                options.InputPath = appSettings["InputPath"] ?? "";
+                options.DatabasePath = appSettings["DatabasePath"] ?? "";
+                options.OutputPath = appSettings["OutputPath"] ?? "";
+
+                bool.TryParse(appSettings["CreateTranscript"], out bool _createTranscript);
+                options.CreateTranscript = _createTranscript;
+
+                bool.TryParse(appSettings["RemoveFolderAfterDecryption"], out bool _removeFolderAfterDecryption);
+                options.RemoveFolderAfterDecryption = _removeFolderAfterDecryption;
+            }
+            catch (ConfigurationErrorsException)
+            {
+                Console.WriteLine("Error reading app settings");
+            }
+
+            return options;
+        }
+
+        public static void ReadAllSettings()
+        {
+            try
+            {
+                var appSettings = ConfigurationManager.AppSettings;
+
+                if (appSettings.Count == 0)
+                {
+                    Console.WriteLine("AppSettings is empty.");
+                }
+                else
+                {
+                    foreach (var key in appSettings.AllKeys)
+                    {
+                        Console.WriteLine("{0} Value: {1}", key, appSettings[key]);
+                    }
+                }
+            }
+            catch (ConfigurationErrorsException)
+            {
+                Console.WriteLine("Error reading app settings");
+            }
         }
     }
 }
