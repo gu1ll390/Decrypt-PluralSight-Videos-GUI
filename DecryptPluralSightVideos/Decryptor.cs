@@ -119,7 +119,7 @@ namespace DecryptPluralSightVideos
                 if (course != null)
                 {
                     // Create new course path with the output path
-                    var newCoursePath = Path.Combine(outputFolder, CleanName(course.CourseTitle));
+                    var newCoursePath = Path.Combine(outputFolder, CleanName(course.CourseLevel.ToLower() + " - " + course.CourseTitle));
 
                     DirectoryInfo courseInfo = Directory.Exists(newCoursePath)
                         ? new DirectoryInfo(newCoursePath)
@@ -157,13 +157,11 @@ namespace DecryptPluralSightVideos
                             // Generate module path
                             string moduleHashPath = Path.Combine(coursePath, moduleHash);
                             // Create new module path with decryption name
-                            string newModulePath = Path.Combine(courseInfo.FullName,
-                                (module.ModuleIndex < 10 ? "0" : "") + module.ModuleIndex + ". " + module.ModuleTitle);
+                            string newModulePath = Path.Combine(courseInfo.FullName, (module.ModuleIndex < 10 ? "0" : "") + module.ModuleIndex + ". " + module.ModuleTitle);
                             // If length too long, rename it
                             if (newModulePath.Length > 240)
                             {
-                                newModulePath = Path.Combine(courseInfo.FullName,
-                                    (module.ModuleIndex < 10 ? "0" : "") + module.ModuleIndex + "");
+                                newModulePath = Path.Combine(courseInfo.FullName, (module.ModuleIndex < 10 ? "0" : "") + module.ModuleIndex + "");
                             }
 
 							if (Directory.Exists(moduleHashPath))
@@ -257,14 +255,12 @@ namespace DecryptPluralSightVideos
                     if (File.Exists(currPath))
                     {
                         // Create new path with output folder
-                        var newPath = Path.Combine(outputPath,
-                            (clip.ClipIndex < 10)? "0":"" + clip.ClipIndex + ". " + clip.ClipTitle + ".mp4");
+                        var newPath = Path.Combine(outputPath, ((clip.ClipIndex < 10) ? "0" : "") + clip.ClipIndex + ". " + clip.ClipTitle + ".mp4");
 
-                            // If length too long, rename it
+                        // If length too long, rename it
                         if (newPath.Length > 240)
                         {
-                            newPath = Path.Combine(outputPath,
-                                clip.ClipIndex + ".mp4");
+                            newPath = Path.Combine(outputPath, clip.ClipIndex + ".mp4");
                         }
 
                         // Init video and get it from iStream
@@ -554,7 +550,7 @@ namespace DecryptPluralSightVideos
             string courseName = GetFolderName(folderCoursePath, true).Trim().ToLower();
 
             var cmd = DatabaseConnection.CreateCommand();
-            cmd.CommandText = @"SELECT Name, Title, HasTranscript 
+            cmd.CommandText = @"SELECT Name, Title, Level, HasTranscript 
                                 FROM Course 
                                 WHERE Name = @courseName";
             cmd.Parameters.Add(new SQLiteParameter("@courseName", courseName));
@@ -567,6 +563,7 @@ namespace DecryptPluralSightVideos
                 {
                     CourseName = reader.GetString(reader.GetOrdinal("Name")),
                     CourseTitle = CleanName(reader.GetString(reader.GetOrdinal("Title"))),
+                    CourseLevel = reader.GetString(reader.GetOrdinal("Level")),
                     HasTranscript = reader.GetInt32(reader.GetOrdinal("HasTranscript")),
                     Modules = GetModulesFromDb(reader.GetString(reader.GetOrdinal("Name")))
                 };

@@ -16,11 +16,11 @@ namespace DecryptPluralSightVideos
         {
             Decryptor decryptor;
             DecryptorOptions decryptorOptions = new DecryptorOptions();
+            ReadAllSettings();
 
             try
             {
                 decryptorOptions = ParseCommandLineArgs(args);
-                decryptor = new Decryptor(decryptorOptions);
 
                 if (decryptorOptions.UsageCommand)
                 {
@@ -28,25 +28,29 @@ namespace DecryptPluralSightVideos
                     goto End;
                 }
 
+                if (string.IsNullOrWhiteSpace(decryptorOptions.InputPath))
+                    decryptorOptions = GetAppSettingsOptions();
+
+                decryptor = new Decryptor(decryptorOptions);
+
                 if (!string.IsNullOrWhiteSpace(decryptorOptions.InputPath))
                 {
                     // Time watch
-//                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    // var watch = System.Diagnostics.Stopwatch.StartNew();
                     // Decrypt folders with input path and output path
                     decryptor.DecryptAllFolders(decryptorOptions.InputPath, decryptorOptions.OutputPath);
-                    //                    watch.Stop();
-                    //                    var elapsedMs = watch.ElapsedMilliseconds;
-                    //                    WriteToConsole("Time: " + elapsedMs);
+                    //watch.Stop();
+                    //var elapsedMs = watch.ElapsedMilliseconds;
+                    //WriteToConsole("Time: " + elapsedMs);
                     if (decryptorOptions.RemoveFolderAfterDecryption)
                     {
-                        WriteToConsole("Removing course in database after decryption." + Environment.NewLine,
-                            ConsoleColor.Yellow);
-                        foreach (string coursePath in Directory.GetDirectories(decryptorOptions.InputPath, "*",
-                            SearchOption.TopDirectoryOnly))
+                        WriteToConsole("Removing course after decryption." + Environment.NewLine, ConsoleColor.DarkYellow);
+                        foreach (string coursePath in Directory.GetDirectories(decryptorOptions.InputPath, "*", SearchOption.TopDirectoryOnly))
                         {
                             decryptor.RemoveCourseInDb(coursePath);
-                            WriteToConsole("Course " + decryptor.GetFolderName(coursePath) + " has been deleted in database." + Environment.NewLine,
-                                ConsoleColor.Yellow);
+                            WriteToConsole("Course " + decryptor.GetFolderName(coursePath) + " has been deleted in database." + Environment.NewLine, ConsoleColor.DarkYellow);
+                            decryptor.RemoveCourseInDisk(coursePath);
+                            WriteToConsole("Course " + decryptor.GetFolderName(coursePath) + " has been deleted from disk." + Environment.NewLine, ConsoleColor.DarkYellow);
                         }
                     }
                 }
@@ -58,8 +62,7 @@ namespace DecryptPluralSightVideos
             catch (Exception exception)
             {
                 WriteToConsole(
-                    "Error occured: " + exception.Message + "\n" + exception.StackTrace + Environment.NewLine,
-                    ConsoleColor.Red);
+                    "Error occured: " + exception.Message + "\n" + exception.StackTrace + Environment.NewLine, ConsoleColor.Red);
                 WriteToConsole(
                     "Please use\t/HELP\tflag to know more about other commands or contact with the publisher.");
             }
